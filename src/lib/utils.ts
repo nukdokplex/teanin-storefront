@@ -46,6 +46,7 @@ export function getHrefForVariant({
 	return `${pathname}?${query.toString()}`;
 }
 
+
 export const getStorageAuthEventCookieName = (prefix?: string) =>
   [prefix, "saleor_storage_auth_change"].filter(Boolean).join("+");
 export const getStorageAuthStateCookieName = (prefix?: string) =>
@@ -54,3 +55,28 @@ export const getRefreshTokenCookieName = (prefix?: string) =>
   [prefix, "saleor_auth_module_refresh_token"].filter(Boolean).join("+");
 export const getAccessTokenCookieName = (prefix?: string) =>
   [prefix, "saleor_auth_access_token"].filter(Boolean).join("+");
+
+/**
+ * This function assumes that the token is a JWT and gets the expiration date from it.
+ * It silences all errors and returns undefined instead.
+ */
+export const tryGetExpFromJwt = (token: string, nowInSeconds = (Date.now() / 1000)): undefined | Date => {
+  try {
+    const parsedToken = JSON.parse(atob(token.split(".")[1] ?? ""));
+    try {
+      const refreshToken = (parsedToken as { oauth_refresh_token?: unknown }).oauth_refresh_token;
+      if (refreshToken && typeof refreshToken === "string") {
+        return tryGetExpFromJwt(refreshToken, nowInSeconds);
+      }
+    }
+    catch { }
+    try {
+      const exp = (parsedToken as { exp?: unknown }).exp;
+      if (exp && typeof exp === "number" && exp > nowInSeconds) {
+        return new Date(exp * 1000);
+      }
+    } catch { }
+  }
+  catch { }
+	return undefined;
+};

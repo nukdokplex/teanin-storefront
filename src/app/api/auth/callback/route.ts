@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExternalProvider, SaleorExternalAuth } from "@saleor/auth-sdk";
-import { serialize } from "cookie";
 import {
 	getAccessTokenCookieName,
 	getRefreshTokenCookieName,
 	getStorageAuthStateCookieName,
+  tryGetExpFromJwt,
 } from "@/lib/utils";
 
 const saleorApiUrl = process.env.NEXT_PUBLIC_SALEOR_API_URL;
@@ -12,24 +12,6 @@ if (!saleorApiUrl) throw new Error("NEXT_PUBLIC_SALEOR_URL is not set");
 
 const externalAuth = new SaleorExternalAuth(saleorApiUrl, ExternalProvider.OpenIDConnect);
 
-/**
- * This function assumes that the token is a JWT and gets the expiration date from it.
- * It silences all errors and returns undefined instead.
- *
- * copied from saleor/auth-sdk
- */
-const tryGetExpFromJwt = (token: string) => {
-	try {
-		const exp = (JSON.parse(atob(token.split(".")[1] ?? "")) as { exp?: unknown }).exp;
-		const nowInSeconds = Date.now() / 1000;
-		if (exp && typeof exp === "number" && exp > nowInSeconds) {
-			return new Date(exp * 1000);
-		}
-	} catch {
-		// silence is golden
-	}
-	return undefined;
-};
 
 export async function GET(request: NextRequest) {
 	const searchParams = request.nextUrl.searchParams;
