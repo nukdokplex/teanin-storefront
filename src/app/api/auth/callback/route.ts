@@ -1,12 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExternalProvider, SaleorExternalAuth } from "@saleor/auth-sdk";
 import { serialize } from "cookie";
-import { getAccessTokenCookieName, getRefreshTokenCookieName, getStorageAuthStateCookieName } from "@/lib/utils";
+import {
+	getAccessTokenCookieName,
+	getRefreshTokenCookieName,
+	getStorageAuthStateCookieName,
+} from "@/lib/utils";
 
 const saleorApiUrl = process.env.NEXT_PUBLIC_SALEOR_API_URL;
 if (!saleorApiUrl) throw new Error("NEXT_PUBLIC_SALEOR_URL is not set");
 
 const externalAuth = new SaleorExternalAuth(saleorApiUrl, ExternalProvider.OpenIDConnect);
+
+/**
+ * This function assumes that the token is a JWT and gets the expiration date from it.
+ * It silences all errors and returns undefined instead.
+ *
+ * copied from saleor/auth-sdk
+ */
+const tryGetExpFromJwt = (token: string) => {
+	try {
+		const exp = (JSON.parse(atob(token.split(".")[1] ?? "")) as { exp?: unknown }).exp;
+		const nowInSeconds = Date.now() / 1000;
+		if (exp && typeof exp === "number" && exp > nowInSeconds) {
+			return new Date(exp * 1000);
+		}
+	} catch {
+		// silence is golden
+	}
+	return undefined;
+};
 
 export async function GET(request: NextRequest) {
 	const searchParams = request.nextUrl.searchParams;
@@ -21,9 +44,24 @@ export async function GET(request: NextRequest) {
 
 	const response = NextResponse.redirect(new URL("/", request.nextUrl));
 
-  response.cookies.set(getAccessTokenCookieName(saleorApiUrl), token, { secure: true, path: "/" });
-  response.cookies.set(getRefreshTokenCookieName(saleorApiUrl), refreshToken, { secure: true, path: "/" });
-  response.cookies.set(getStorageAuthStateCookieName(saleorApiUrl), "signedIn", { secure: true, path: "/" });
+	// logic of all these cookie sets were copied from what auth-sdk/src/next/server.ts actually does
+	response.cookies.set(getAccessTokenCookieName(saleorApiUrl), token, {
+		secure: true,
+		sameSite: "lax",
+		path: "/",
+    expires: tryGetExpFromJwt(token)
+	});
+	response.cookies.set(getRefreshTokenCookieName(saleorApiUrl), refreshToken, {
+		secure: true,
+		sameSite: "lax",
+		path: "/",
+    expires: tryGetExpFromJwt(refreshToken)
+	});
+	response.cookies.set(getStorageAuthStateCookieName(saleorApiUrl), "signedIn", {
+		secure: true,
+		sameSite: "lax",
+		path: "/",
+	});
 
 	return response;
 }
