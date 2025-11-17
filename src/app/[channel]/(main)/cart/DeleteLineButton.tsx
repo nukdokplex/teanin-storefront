@@ -22,7 +22,7 @@ export const DeleteLineButton = ({ lineId, checkoutId }: Props) => {
 			aria-disabled={isPending}
 		>
 			{isPending ? "Removing" : "Remove"}
-			<span className="sr-only">line from cart</span>
+			<span className="sr-only">строка из корзины</span>
 		</button>
 	);
 };

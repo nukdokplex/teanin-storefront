@@ -73,23 +73,20 @@ export async function Footer({ channel }: { channel: string }) {
 					})}
 				</div>
 
-				{channels?.channels && (
+				{/*channels?.channels && (
 					<div className="mb-4 text-neutral-500">
 						<label>
 							<span className="text-sm">Change currency:</span> <ChannelSelect channels={channels.channels} />
 						</label>
 					</div>
-				)}
+				)*/}
 
 				<div className="flex flex-col justify-between border-t border-neutral-200 py-10 sm:flex-row">
-					<p className="text-sm text-neutral-500">Copyright &copy; {currentYear} Your Store, Inc.</p>
+					<p className="text-sm text-neutral-500">&copy; {currentYear} ТЕАНИН. Все права защищены.</p>
 					<p className="flex gap-1 text-sm text-neutral-500">
-						Powered by{" "}
-						<Link target={"_blank"} href={"https://saleor.io/"}>
-							Saleor
-						</Link>{" "}
-						<Link href={"https://github.com/saleor/saleor"} target={"_blank"} className={"opacity-30"}>
-							<Image alt="Saleor github repository" height={20} width={20} src={"/github-mark.svg"} />
+						Сайт скрафтил nukdokplex{" "}
+						<Link href={"https://github.com/nukdokplex"} target="_blank" className="text-sm">
+							<Image alt="Saleor github repository" height={20} width={20} className={"opacity-30"} src={"/github-mark.svg"} />
 						</Link>
 					</p>
 				</div>
