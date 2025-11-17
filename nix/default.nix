@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./devshells.nix
+  ];
+}

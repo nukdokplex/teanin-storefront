@@ -36,6 +36,8 @@ export async function executeGraphQL<Result, Variables>(
 		next: { revalidate },
 	};
 
+  //console.log(operation, "withAuth:", withAuth)
+
 	const response = withAuth
 		? await (await getServerAuthClient()).fetchWithAuth(process.env.NEXT_PUBLIC_SALEOR_API_URL, input)
 		: await fetch(process.env.NEXT_PUBLIC_SALEOR_API_URL, input);
